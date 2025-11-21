@@ -18,7 +18,176 @@ html, body {
   margin: 0 auto;
   padding: 40px 20px;
   text-align: center;
+  position: relative;
 }
+
+.settings-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid #333333;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.settings-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: #666666;
+  transform: rotate(45deg);
+}
+
+.settings-btn img {
+  display: block;
+  filter: brightness(0) invert(1);
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 20px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  padding: 25px 30px;
+  border-bottom: 1px solid #333333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.close-btn:hover {
+  color: #ff4444;
+}
+
+.modal-body {
+  padding: 25px 30px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.settings-description {
+  margin-bottom: 20px;
+  color: #cccccc;
+  font-size: 0.95rem;
+}
+
+.album-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.album-filter-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+  background: #0a0a0a;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.album-filter-item:hover {
+  background: #222222;
+  border-color: #555555;
+}
+
+.album-filter-label {
+  font-size: 1rem;
+  font-weight: 300;
+  color: #ffffff;
+  flex: 1;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 26px;
+  background-color: #333333;
+  border-radius: 13px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-switch.active {
+  background-color: #4CAF50;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.toggle-switch.active .toggle-slider {
+  transform: translateX(24px);
+}
+
+.modal-footer {
+  padding: 20px 30px;
+  border-top: 1px solid #333333;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}</modal-footer></container>
 
 h1 {
   font-size: 2.5rem;
@@ -130,6 +299,34 @@ h1 {
 
 .audio-container {
   margin: 30px 0;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background-color: #333333;
+  border-radius: 3px;
+  margin-top: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #ffffff;
+  width: 0%;
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+
+.progress-marker {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: #888888;
+  transform: translateX(-50%);
+  z-index: 2;
 }
 
 .play-btn {
