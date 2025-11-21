@@ -1,5 +1,5 @@
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'https://juicewrldapi.com/juicewrld/radio';
 
 const SNIPPET_DURATIONS = [1, 2, 4, 7, 11, 16];
 
@@ -60,7 +60,7 @@ async function startNewGame() {
     elements.gameContainer.classList.add('hidden');
     elements.resultSection.classList.add('hidden');
     
-    const response = await fetch(`${API_BASE_URL}/random`);
+    const response = await fetch(`${API_BASE_URL}/random/`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
