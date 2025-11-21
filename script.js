@@ -23,8 +23,41 @@ const elements = {
   revealSongArtist: document.getElementById('revealSongArtist'),
   revealSongAlbum: document.getElementById('revealSongAlbum'),
   revealSongDuration: document.getElementById('revealSongDuration'),
-  downloadBtn: document.getElementById('downloadBtn')
+  downloadBtn: document.getElementById('downloadBtn'),
+  settingsBtn: document.getElementById('settingsBtn'),
+  settingsModal: document.getElementById('settingsModal'),
+  closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+  albumFilters: document.getElementById('albumFilters'),
+  selectAllBtn: document.getElementById('selectAllBtn'),
+  deselectAllBtn: document.getElementById('deselectAllBtn')
 };
+
+const ALBUM_GROUPS = {
+  'Goodbye & Good Riddance': ['GB&GR', 'GB&GR (AE)', 'GB&GR (5YAE)'],
+  'WRLD On Drugs': ['WOD'],
+  'Death Race For Love': ['DRFL'],
+  'Legends Never Die': ['LND', 'LND (5YAE)'],
+  'Fighting Demons': ['FD', 'FD (DDE)', 'FD (CE)'],
+  'The Pre Party': ['TPP', 'TPP (EE)'],
+  'The Party Never Ends': ['TPNE', 'TPNE 2.0'],
+  'Outsiders': ['OUT'],
+  'Posthumous': ['POST'],
+  'Affliction': ['afflictions'],
+  'HIH 999': ['HIH 999'],
+  'Juice WRLD 999': ['jw 999'],
+  'Juiced Up The EP': ['JUTE'],
+  'BINGEDRINKINGMUSIC': ['bdm'],
+  'NOTHING\'S DIFFERENT': ['ND'],
+  'Mainstream': ['Mainstream'],
+  'Smule': ['Smule'],
+  'YouTube': ['YouTube'],
+  'SoundCloud': ['SoundCloud']
+};
+
+let albumFilter = loadAlbumFilter();
+
+let songCache = [];
+const CACHE_SIZE = 20;
 
 let gameState = {
   currentSong: null,
@@ -52,27 +85,170 @@ elements.guessInput.addEventListener('keypress', (e) => {
   }
 });
 
+elements.settingsBtn.addEventListener('click', openSettings);
+elements.closeSettingsBtn.addEventListener('click', closeSettings);
+elements.settingsModal.addEventListener('click', (e) => {
+  if (e.target === elements.settingsModal) {
+    closeSettings();
+  }
+});
+elements.selectAllBtn.addEventListener('click', selectAllAlbums);
+elements.deselectAllBtn.addEventListener('click', deselectAllAlbums);
+
+initializeAlbumFilters();
+
+function loadAlbumFilter() {
+  const saved = localStorage.getItem('albumFilter');
+  if (saved) {
+    return JSON.parse(saved);
+  }
+  
+  const defaultFilter = {};
+  Object.keys(ALBUM_GROUPS).forEach(group => {
+    defaultFilter[group] = true;
+  });
+  return defaultFilter;
+}
+
+function saveAlbumFilter() {
+  localStorage.setItem('albumFilter', JSON.stringify(albumFilter));
+}
+
+function initializeAlbumFilters() {
+  elements.albumFilters.innerHTML = '';
+  
+  Object.keys(ALBUM_GROUPS).forEach(groupName => {
+    const filterItem = document.createElement('div');
+    filterItem.className = 'album-filter-item';
+    
+    const label = document.createElement('span');
+    label.className = 'album-filter-label';
+    label.textContent = groupName;
+    
+    const toggle = document.createElement('div');
+    toggle.className = 'toggle-switch' + (albumFilter[groupName] ? ' active' : '');
+    toggle.innerHTML = '<div class="toggle-slider"></div>';
+    
+    toggle.addEventListener('click', () => {
+      albumFilter[groupName] = !albumFilter[groupName];
+      toggle.classList.toggle('active');
+      saveAlbumFilter();
+    });
+    
+    filterItem.appendChild(label);
+    filterItem.appendChild(toggle);
+    elements.albumFilters.appendChild(filterItem);
+  });
+}
+
+function openSettings() {
+  elements.settingsModal.classList.remove('hidden');
+}
+
+function closeSettings() {
+  elements.settingsModal.classList.add('hidden');
+}
+
+function selectAllAlbums() {
+  Object.keys(ALBUM_GROUPS).forEach(group => {
+    albumFilter[group] = true;
+  });
+  saveAlbumFilter();
+  initializeAlbumFilters();
+}
+
+function deselectAllAlbums() {
+  Object.keys(ALBUM_GROUPS).forEach(group => {
+    albumFilter[group] = false;
+  });
+  saveAlbumFilter();
+  initializeAlbumFilters();
+}
+
+function isAlbumAllowed(albumName) {
+  if (!albumName) return true;
+  
+  const normalizedAlbum = albumName.toUpperCase();
+  
+  for (const [groupName, aliases] of Object.entries(ALBUM_GROUPS)) {
+    if (aliases.some(alias => alias.toUpperCase() === normalizedAlbum)) {
+      return albumFilter[groupName];
+    }
+  }
+  
+  return true;
+}
+
+async function fetchRandomSongs(count) {
+  const songs = [];
+  for (let i = 0; i < count; i++) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/random/`);
+      if (response.ok) {
+        const data = await response.json();
+        songs.push(data);
+      }
+    } catch (err) {
+      console.error('Error fetching song:', err);
+    }
+  }
+  return songs;
+}
+
+function getFilteredSongFromCache() {
+  const filtered = songCache.filter(song => {
+    const albumName = song.song?.era?.name;
+    return isAlbumAllowed(albumName);
+  });
+  
+  if (filtered.length > 0) {
+    const randomIndex = Math.floor(Math.random() * filtered.length);
+    const selectedSong = filtered[randomIndex];
+    songCache = songCache.filter(s => s !== selectedSong);
+    return selectedSong;
+  }
+  
+  return null;
+}
+
 async function startNewGame() {
   try {
+    const hasSelectedAlbum = Object.values(albumFilter).some(selected => selected === true);
+    if (!hasSelectedAlbum) {
+      elements.error.textContent = 'Please select at least one album in settings before starting the game.';
+      elements.error.classList.remove('hidden');
+      return;
+    }
+    
     elements.loading.classList.remove('hidden');
     elements.error.classList.add('hidden');
     elements.startBtn.classList.add('hidden');
     elements.gameContainer.classList.add('hidden');
     elements.resultSection.classList.add('hidden');
     
-    const response = await fetch(`${API_BASE_URL}/random/`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (songCache.length < 5) {
+      const newSongs = await fetchRandomSongs(CACHE_SIZE);
+      songCache = [...songCache, ...newSongs];
     }
-
-    const data = await response.json();
+    
+    let data = getFilteredSongFromCache();
+    
+    if (!data) {
+      const newSongs = await fetchRandomSongs(CACHE_SIZE);
+      songCache = [...songCache, ...newSongs];
+      data = getFilteredSongFromCache();
+      
+      if (!data) {
+        throw new Error('Could not find a song matching your album filter. Try enabling more albums.');
+      }
+    }
     
     gameState = {
       currentSong: data,
       attempt: 0,
       isPlaying: false,
-      gameOver: false
+      gameOver: false,
+      randomStartTime: null
     };
     
     const encodedPath = encodeURIComponent(data.path);
@@ -111,6 +287,8 @@ function resetGameUI() {
   
   updatePlayButton();
   updateSkipButton();
+  updateProgressBar(0);
+  updateProgressMarkers();
 }
 
 function updateSkipButton() {
@@ -124,25 +302,111 @@ function updateSkipButton() {
   }
 }
 
+let currentProgressInterval = null;
+let currentStopTimeout = null;
+
 function togglePlayPause() {
   if (gameState.isPlaying) {
     elements.audioPlayer.pause();
     gameState.isPlaying = false;
     updatePlayButton();
+    
+    if (currentProgressInterval) {
+      clearInterval(currentProgressInterval);
+      currentProgressInterval = null;
+    }
+    if (currentStopTimeout) {
+      clearTimeout(currentStopTimeout);
+      currentStopTimeout = null;
+    }
+    
+    if (gameState.randomStartTime !== null) {
+      elements.audioPlayer.currentTime = gameState.randomStartTime;
+    }
+    updateProgressBar(0);
   } else {
     gameState.isPlaying = true;
     updatePlayButton();
     
     const duration = SNIPPET_DURATIONS[gameState.attempt];
     
-    elements.audioPlayer.currentTime = 0;
-    elements.audioPlayer.play();
+    if (gameState.randomStartTime === null) {
+      const totalDuration = elements.audioPlayer.duration;
+      const maxStartTime = Math.max(0, totalDuration - SNIPPET_DURATIONS[5]);
+      gameState.randomStartTime = Math.random() * maxStartTime;
+    }
     
-    setTimeout(() => {
+    elements.audioPlayer.currentTime = gameState.randomStartTime;
+    updateProgressBar(0);
+    
+    const playPromise = elements.audioPlayer.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        console.error('Play failed:', error);
+        gameState.isPlaying = false;
+        updatePlayButton();
+        return;
+      });
+    }
+    
+    const snippetStartTime = gameState.randomStartTime;
+    const snippetEndTime = snippetStartTime + duration;
+    
+    currentProgressInterval = setInterval(() => {
+      const currentTime = elements.audioPlayer.currentTime;
+      const elapsed = currentTime - snippetStartTime;
+      const progress = Math.min((elapsed / duration) * 100, 100);
+      updateProgressBar(progress);
+      
+      if (currentTime >= snippetEndTime || elapsed >= duration) {
+        elements.audioPlayer.pause();
+        gameState.isPlaying = false;
+        updatePlayButton();
+        clearInterval(currentProgressInterval);
+        currentProgressInterval = null;
+        if (currentStopTimeout) {
+          clearTimeout(currentStopTimeout);
+          currentStopTimeout = null;
+        }
+        updateProgressBar(100);
+      }
+    }, 50);
+    
+    currentStopTimeout = setTimeout(() => {
       elements.audioPlayer.pause();
       gameState.isPlaying = false;
       updatePlayButton();
-    }, duration * 1000);
+      if (currentProgressInterval) {
+        clearInterval(currentProgressInterval);
+        currentProgressInterval = null;
+      }
+      updateProgressBar(100);
+    }, duration * 1000 + 100);
+  }
+}
+
+function updateProgressBar(percentage) {
+  const progressBar = document.getElementById('progressBar');
+  if (progressBar) {
+    progressBar.style.width = percentage + '%';
+  }
+}
+
+function updateProgressMarkers() {
+  const container = document.querySelector('.progress-bar-container');
+  const existingMarkers = container.querySelectorAll('.progress-marker');
+  existingMarkers.forEach(marker => marker.remove());
+  
+  const maxDuration = SNIPPET_DURATIONS[5];
+  
+  for (let i = 0; i < gameState.attempt; i++) {
+    const duration = SNIPPET_DURATIONS[i];
+    const percentage = (duration / maxDuration) * 100;
+    
+    const marker = document.createElement('div');
+    marker.className = 'progress-marker';
+    marker.style.left = percentage + '%';
+    container.appendChild(marker);
   }
 }
 
@@ -179,6 +443,7 @@ function submitGuess() {
       elements.guessInput.value = '';
       updatePlayButton();
       updateSkipButton();
+      updateProgressMarkers();
     }
   }
 }
@@ -195,6 +460,7 @@ function skipAttempt() {
   } else {
     updatePlayButton();
     updateSkipButton();
+    updateProgressMarkers();
   }
 }
 
@@ -242,7 +508,7 @@ function checkGuess(guess) {
 }
 
 function expandAlbumName(albumName) {
-  if (!albumName) return 'Unknown Album';
+  if (!albumName) return albumName || 'Unknown Album';
   
   const acronymMap = {
     'JUTE': 'Juiced Up The EP',
@@ -270,7 +536,7 @@ function expandAlbumName(albumName) {
     'FD (CE)': 'Fighting Demons (Collector\'s Edition)',
     'Smule': 'Smule',
     'YouTube': 'YouTube',
-    'SoundCloud': 'SoundCloud'
+    'SoundCloud': 'SoundCloud',
   };
   
   return acronymMap[albumName.toUpperCase()] || albumName;
