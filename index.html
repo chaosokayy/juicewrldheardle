@@ -11,6 +11,27 @@
 
 <body>
   <div class="container">
+    <button id="settingsBtn" class="settings-btn" title="Settings">
+      <img src="https://cdn-icons-png.flaticon.com/512/2040/2040504.png" alt="Settings" width="24" height="24">
+    </button>
+    
+    <div id="settingsModal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Album Filter Settings</h2>
+          <button id="closeSettingsBtn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="settings-description">Select which albums/eras to include in the game:</p>
+          <div class="album-filters" id="albumFilters"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="selectAllBtn" class="secondary-btn">Select All</button>
+          <button id="deselectAllBtn" class="secondary-btn">Deselect All</button>
+        </div>
+      </div>
+    </div>
+    
     <h1>Juice WRLD Heardle</h1>
     <p class="subtitle">Guess the Juice WRLD song from the snippet!</p>
     
@@ -29,6 +50,9 @@
       <div class="audio-container">
         <audio id="audioPlayer"></audio>
         <button id="playBtn" class="play-btn">▶ Play (1s)</button>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
       </div>
 
       <div id="guessSection" class="guess-section">
