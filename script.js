@@ -251,6 +251,23 @@ function expandAlbumName(albumName) {
     'TPNE': 'The Party Never Ends',
     'OUT': 'Outsiders',
     'POST': 'Posthumous',
+    'afflictions': 'affliction',
+    'HIH 999': 'HIH 999',
+    'jw 999': 'Juice WRLD 999',
+    'bdm': 'BINGEDRINKINGMUSIC',
+    'ND': 'NOTHING\'S DIFFERENT </3',
+    'TPP': 'The Pre Party',
+    'TPP (EE)': 'The Pre Party (Extended)',
+    'FD (DDE)': 'Fighting Demons (Digital Deluxe Edition)',
+    'TPNE 2.0': 'The Party Never Ends 2.0',
+    'LND (5YAE)': 'Legends Never Die (5th Anniversary Edition)',
+    'Mainstream': 'Mainstream',
+    'GB&GR (AE)': 'Goodbye & Good Riddance (Anniversary Edition)',
+    'GB&GR (5YAE)': 'Goodbye & Good Riddance (5 Year Anniversary Edition)',
+    'FD (CE)': 'Fighting Demons (Collector\'s Edition)',
+    'Smule': 'Smule',
+    'YouTube': 'YouTube',
+    'SoundCloud': 'SoundCloud'
   };
   
   return acronymMap[albumName.toUpperCase()] || albumName;
