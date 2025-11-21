@@ -206,6 +206,7 @@ function checkGuess(guess) {
   const cleanGuess = normalizedGuess
     .replace(/\s*\([^)]*\)/g, '')
     .replace(/\s*v\d+/gi, '')
+    .replace(/\s*2\.0$/gi, '')
     .replace(/\s*(extended|outro|intro|alternate|alt|demo|og|leak|snippet)$/gi, '')
     .replace(/[^\w\s]/g, '')
     .replace(/\s+/g, ' ')
@@ -214,6 +215,7 @@ function checkGuess(guess) {
   const cleanTitle = songTitle
     .replace(/\s*\([^)]*\)/g, '')
     .replace(/\s*v\d+/gi, '')
+    .replace(/\s*2\.0$/gi, '')
     .replace(/\s*(extended|outro|intro|alternate|alt|demo|og|leak|snippet)$/gi, '')
     .replace(/[^\w\s]/g, '')
     .replace(/\s+/g, ' ')
@@ -225,6 +227,7 @@ function checkGuess(guess) {
     const cleanAltTitle = title.toLowerCase().trim()
       .replace(/\s*\([^)]*\)/g, '')
       .replace(/\s*v\d+/gi, '')
+      .replace(/\s*2\.0$/gi, '')
       .replace(/\s*(extended|outro|intro|alternate|alt|demo|og|leak|snippet)$/gi, '')
       .replace(/[^\w\s]/g, '')
       .replace(/\s+/g, ' ')
